@@ -190,7 +190,7 @@ POST /api/groups
 POST /api/chargestations
 {
   "name": "Station 1",
-  "groupId": "<group-id>"
+  "groupId": "<uuid>"
 }
 ```
 
@@ -201,7 +201,7 @@ POST /api/connectors
 {
   "id": 1,
   "maxCurrentInAmps": 50,
-  "chargeStationId": "<charge-station-id>"
+  "chargeStationId": "<uuid>"
 }
 ```
 
