@@ -10,7 +10,7 @@ public class ChargeStationRepository(ApplicationDbContext context)
 {
     public async Task<ChargeStation?> GetByIdWithConnectorsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.AsNoTracking()
+        return await DbSet
             .Include(cs => cs.Connectors)
             .Include(cs => cs.Group)
             .FirstOrDefaultAsync(cs => cs.Id == id, cancellationToken);
@@ -18,14 +18,14 @@ public class ChargeStationRepository(ApplicationDbContext context)
 
     public async Task<IEnumerable<ChargeStation>> GetAllWithConnectorsAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet.AsNoTracking()
+        return await DbSet.AsNoTracking()
             .Include(cs => cs.Connectors)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsInGroupAsync(Guid chargeStationId, Guid groupId, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsInGroupAsync(string name, Guid groupId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .AnyAsync(cs => cs.Id == chargeStationId && cs.GroupId == groupId, cancellationToken);
+        return await DbSet.AsNoTracking()
+            .AnyAsync(cs => cs.Name.ToLower() == name.ToLower() && cs.GroupId == groupId, cancellationToken);
     }
 }

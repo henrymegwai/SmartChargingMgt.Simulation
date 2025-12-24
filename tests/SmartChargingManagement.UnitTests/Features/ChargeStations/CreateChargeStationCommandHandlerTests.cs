@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
 using SmartChargingManagement.Application.Features.ChargeStations.Commands;
@@ -26,7 +27,8 @@ public class CreateChargeStationCommandHandlerTests
             Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.Arg<ChargeStation>()));
 
-        var handler = new CreateChargeStationCommandHandler(chargeStationRepository, groupRepository);
+        var logger = Substitute.For<ILogger<CreateChargeStationCommandHandler>>();
+        var handler = new CreateChargeStationCommandHandler(chargeStationRepository, groupRepository, logger);
         var command = new CreateChargeStationCommand("Test Charge Station", groupId);
 
         // Act
@@ -56,7 +58,8 @@ public class CreateChargeStationCommandHandlerTests
         groupRepository.GetByIdAsync(groupId, Arg.Any<CancellationToken>())
             .Returns((Group?)null);
 
-        var handler = new CreateChargeStationCommandHandler(chargeStationRepository, groupRepository);
+        var logger = Substitute.For<ILogger<CreateChargeStationCommandHandler>>();
+        var handler = new CreateChargeStationCommandHandler(chargeStationRepository, groupRepository, logger);
         var command = new CreateChargeStationCommand("Test Charge Station", groupId);
 
         // Act

@@ -1,11 +1,10 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
-using SmartChargingManagement.Application.Common.Models;
 using SmartChargingManagement.Application.Features.Connectors.Commands;
 using SmartChargingManagement.Application.Features.Connectors.Handlers;
 using SmartChargingManagement.Domain.Entities;
-using Xunit;
 
 namespace SmartChargingManagement.UnitTests.Features.Connectors;
 
@@ -17,7 +16,8 @@ public class DeleteConnectorCommandHandlerTests
         // Arrange
         var connectorRepository = Substitute.For<IConnectorRepository>();
         var chargeStationRepository = Substitute.For<IChargeStationRepository>();
-        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository);
+        var logger = Substitute.For<ILogger<DeleteConnectorCommandHandler>>();
+        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository, logger);
 
         var groupId = Guid.NewGuid();
         var chargeStationId = Guid.NewGuid();
@@ -57,7 +57,8 @@ public class DeleteConnectorCommandHandlerTests
         // Arrange
         var connectorRepository = Substitute.For<IConnectorRepository>();
         var chargeStationRepository = Substitute.For<IChargeStationRepository>();
-        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository);
+        var logger = Substitute.For<ILogger<DeleteConnectorCommandHandler>>();
+        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository, logger);
         var chargeStationId = Guid.NewGuid();
 
         connectorRepository.GetByIdAndChargeStationIdAsync(1, chargeStationId, Arg.Any<CancellationToken>())
@@ -83,7 +84,8 @@ public class DeleteConnectorCommandHandlerTests
         // Arrange
         var connectorRepository = Substitute.For<IConnectorRepository>();
         var chargeStationRepository = Substitute.For<IChargeStationRepository>();
-        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository);
+        var logger = Substitute.For<ILogger<DeleteConnectorCommandHandler>>();
+        var handler = new DeleteConnectorCommandHandler(connectorRepository, chargeStationRepository, logger);
         var chargeStationId = Guid.NewGuid();
         var connector = new Connector(1, 50, chargeStationId);
 

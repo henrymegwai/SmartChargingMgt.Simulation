@@ -5,15 +5,11 @@ using SmartChargingManagement.Infrastructure.Data;
 
 namespace SmartChargingManagement.Infrastructure.Repositories;
 
-public class GroupRepository : Repository<Group>, IGroupRepository
+public class GroupRepository(ApplicationDbContext context) : Repository<Group>(context), IGroupRepository
 {
-    public GroupRepository(ApplicationDbContext context) : base(context)
-    {
-    }
-
     public async Task<Group?> GetByIdWithChargeStationsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await DbSet
             .Include(g => g.ChargeStations)
                 .ThenInclude(cs => cs.Connectors)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);

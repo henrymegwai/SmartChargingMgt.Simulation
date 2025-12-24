@@ -21,35 +21,29 @@ public class ChargeStationsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(Response<ChargeStationDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Response<ChargeStationDto>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ChargeStationDto>> GetById(Guid id)
     {
         var query = new GetChargeStationByIdQuery(id);
         var response = await mediator.Send(query);
-
-        if (response.Data == null)
-            return NotFound();
-
+        
         return Ok(response.Data);
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(ChargeStationDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Response<ChargeStationDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Response<ChargeStationDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ChargeStationDto>> Create([FromBody] CreateChargeStationRequest request)
     {
         var command = new CreateChargeStationCommand(request.Name, request.GroupId);
         var response = await mediator.Send(command);
-        
-        if (!response.Status || response.Data == null)
-            return BadRequest(response.Message);
-            
-        return CreatedAtAction(nameof(GetById), new { id = response.Data.Id }, response.Data);
+        return Ok(response);
     }
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ChargeStationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ChargeStationDto>> Update(Guid id, [FromBody] UpdateChargeStationRequest request)
     {
         var command = new UpdateChargeStationCommand(id, request.Name);
