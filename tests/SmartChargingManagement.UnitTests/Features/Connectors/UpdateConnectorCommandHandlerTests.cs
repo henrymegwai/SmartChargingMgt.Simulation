@@ -3,11 +3,9 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
-using SmartChargingManagement.Application.Common.Models;
 using SmartChargingManagement.Application.Features.Connectors.Commands;
 using SmartChargingManagement.Application.Features.Connectors.Handlers;
 using SmartChargingManagement.Domain.Entities;
-using Xunit;
 
 namespace SmartChargingManagement.UnitTests.Features.Connectors;
 
@@ -18,6 +16,7 @@ public class UpdateConnectorCommandHandlerTests
         var property = typeof(Connector).GetProperty("ChargeStation", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
         property?.SetValue(connector, chargeStation);
     }
+
 
     [Fact]
     public async Task Handle_ShouldUpdateConnectorMaxCurrent_WhenValidCommand()
@@ -55,7 +54,7 @@ public class UpdateConnectorCommandHandlerTests
         result.Should().NotBeNull();
         result.Status.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data!.Id.Should().Be(1);
+        result.Data.Id.Should().Be(1);
         result.Data.MaxCurrentInAmps.Should().Be(75);
         result.Data.ChargeStationId.Should().Be(chargeStationId);
         result.Message.Should().Be("Connector updated successfully");

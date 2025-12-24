@@ -93,10 +93,11 @@ The domain consists of three main entities:
    dotnet run --project src/SmartChargingManagement.Api
    ```
 
-   The API will start on `https://localhost:5001` or `http://localhost:5000` (ports may vary based on your configuration).
+   The API will start on `https://localhost:7151` or `http://localhost:5125` (ports may vary based on your configuration).
 
 5. **Access Swagger UI**:
-   - Navigate to `https://localhost:5001/swagger` (or the port shown in the console)
+   - Navigate to `http://localhost:5125/index.html` (or the port shown in the console) or
+   - Navigate to `https://localhost:7151/index.html` (or the port shown in the console)
    - The Swagger UI provides an interactive interface to test all API endpoints
 
 ## Database Setup

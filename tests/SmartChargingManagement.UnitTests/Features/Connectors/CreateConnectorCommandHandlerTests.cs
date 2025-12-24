@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
 using SmartChargingManagement.Application.Common.Models;
@@ -29,16 +30,14 @@ public class CreateConnectorCommandHandlerTests
         
         groupRepository.GetByIdWithChargeStationsAsync(groupId, Arg.Any<CancellationToken>())
             .Returns(group);
-        
-        connectorRepository.GetByIdAndChargeStationIdAsync(1, chargeStationId, Arg.Any<CancellationToken>())
-            .Returns((Connector?)null);
 
         Connector? savedConnector = null;
         connectorRepository.AddAsync(Arg.Do<Connector>(c => savedConnector = c), Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.Arg<Connector>()));
 
-        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository);
-        var command = new CreateConnectorCommand(1, 50, chargeStationId);
+        var logger = Substitute.For<ILogger<CreateConnectorCommandHandler>>();
+        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository, logger);
+        var command = new CreateConnectorCommand(50, chargeStationId);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -47,12 +46,12 @@ public class CreateConnectorCommandHandlerTests
         result.Should().NotBeNull();
         result.Status.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(1);
+        result.Data.Id.Should().Be(1); // Auto-assigned first available ID
         result.Data.MaxCurrentInAmps.Should().Be(50);
         result.Data.ChargeStationId.Should().Be(chargeStationId);
         result.Message.Should().Be("Connector created successfully");
         savedConnector.Should().NotBeNull();
-        savedConnector!.Id.Should().Be(1);
+        savedConnector!.Id.Should().Be(1); // Auto-assigned first available ID
         savedConnector.MaxCurrentInAmps.Should().Be(50);
         await connectorRepository.Received(1).AddAsync(Arg.Any<Connector>(), Arg.Any<CancellationToken>());
     }
@@ -69,8 +68,9 @@ public class CreateConnectorCommandHandlerTests
         chargeStationRepository.GetByIdWithConnectorsAsync(chargeStationId, Arg.Any<CancellationToken>())
             .Returns((ChargeStation?)null);
 
-        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository);
-        var command = new CreateConnectorCommand(1, 50, chargeStationId);
+        var logger = Substitute.For<ILogger<CreateConnectorCommandHandler>>();
+        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository, logger);
+        var command = new CreateConnectorCommand(50, chargeStationId);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -85,7 +85,7 @@ public class CreateConnectorCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFailedResponse_WhenConnectorAlreadyExists()
+    public async Task Handle_ShouldReturnFailedResponse_WhenMaxConnectorsReached()
     {
         // Arrange
         var connectorRepository = Substitute.For<IConnectorRepository>();
@@ -94,18 +94,25 @@ public class CreateConnectorCommandHandlerTests
         
         var groupId = Guid.NewGuid();
         var chargeStationId = Guid.NewGuid();
-        var group = new Group(groupId, "Test Group", 100);
+        var group = new Group(groupId, "Test Group", 500); // High capacity to allow all connectors
         var chargeStation = new ChargeStation(chargeStationId, "Test Charge Station", groupId);
-        var existingConnector = new Connector(1, 50, chargeStationId);
+        
+        // Add 5 connectors (max allowed)
+        for (int i = 1; i <= 5; i++)
+        {
+            chargeStation.AddConnector(new Connector(i, 50, chargeStationId));
+        }
+        group.AddChargeStation(chargeStation);
         
         chargeStationRepository.GetByIdWithConnectorsAsync(chargeStationId, Arg.Any<CancellationToken>())
             .Returns(chargeStation);
         
-        connectorRepository.GetByIdAndChargeStationIdAsync(1, chargeStationId, Arg.Any<CancellationToken>())
-            .Returns(existingConnector);
+        groupRepository.GetByIdWithChargeStationsAsync(groupId, Arg.Any<CancellationToken>())
+            .Returns(group);
 
-        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository);
-        var command = new CreateConnectorCommand(1, 50, chargeStationId);
+        var logger = Substitute.For<ILogger<CreateConnectorCommandHandler>>();
+        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository, logger);
+        var command = new CreateConnectorCommand(50, chargeStationId);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -114,7 +121,7 @@ public class CreateConnectorCommandHandlerTests
         result.Should().NotBeNull();
         result.Status.Should().BeFalse();
         result.Data.Should().BeNull();
-        result.Message.Should().Contain("already exists");
+        result.Message.Should().Contain("cannot have more than 5 connectors");
         await connectorRepository.DidNotReceive().AddAsync(Arg.Any<Connector>(), Arg.Any<CancellationToken>());
     }
 
@@ -140,12 +147,13 @@ public class CreateConnectorCommandHandlerTests
         groupRepository.GetByIdWithChargeStationsAsync(groupId, Arg.Any<CancellationToken>())
             .Returns(group);
         
-        connectorRepository.GetByIdAndChargeStationIdAsync(2, chargeStationId, Arg.Any<CancellationToken>())
+        connectorRepository.GetByChargeStationIdAsync(chargeStationId, Arg.Any<CancellationToken>())
             .Returns((Connector?)null);
 
-        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository);
+        var logger = Substitute.For<ILogger<CreateConnectorCommandHandler>>();
+        var handler = new CreateConnectorCommandHandler(connectorRepository, chargeStationRepository, groupRepository, logger);
         // Try to add a connector with 50 Amps, but existing connector has 60, total would be 110, exceeding capacity of 100
-        var command = new CreateConnectorCommand(2, 50, chargeStationId);
+        var command = new CreateConnectorCommand(50, chargeStationId);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

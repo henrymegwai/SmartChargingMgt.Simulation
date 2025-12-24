@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
 using SmartChargingManagement.Application.Common.Models;
@@ -16,7 +17,8 @@ public class UpdateChargeStationCommandHandlerTests
     {
         // Arrange
         var repository = Substitute.For<IChargeStationRepository>();
-        var handler = new UpdateChargeStationCommandHandler(repository);
+        var logger = Substitute.For<ILogger<UpdateChargeStationCommandHandler>>();
+        var handler = new UpdateChargeStationCommandHandler(repository, logger);
         var chargeStationId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
         var existingChargeStation = new ChargeStation(chargeStationId, "Old Name", groupId);
@@ -44,19 +46,18 @@ public class UpdateChargeStationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotUpdateName_WhenNameIsNull()
+    public async Task Handle_ShouldReturnFailedResponse_WhenNameIsNull()
     {
         // Arrange
         var repository = Substitute.For<IChargeStationRepository>();
-        var handler = new UpdateChargeStationCommandHandler(repository);
+        var logger = Substitute.For<ILogger<UpdateChargeStationCommandHandler>>();
+        var handler = new UpdateChargeStationCommandHandler(repository, logger);
         var chargeStationId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
         var existingChargeStation = new ChargeStation(chargeStationId, "Original Name", groupId);
 
         repository.GetByIdWithConnectorsAsync(chargeStationId, Arg.Any<CancellationToken>())
             .Returns(existingChargeStation);
-        repository.UpdateAsync(Arg.Any<ChargeStation>(), Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
 
         var command = new UpdateChargeStationCommand(chargeStationId, null);
 
@@ -65,10 +66,10 @@ public class UpdateChargeStationCommandHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Status.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Name.Should().Be("Original Name");
-        await repository.Received(1).UpdateAsync(Arg.Any<ChargeStation>(), Arg.Any<CancellationToken>());
+        result.Status.Should().BeFalse();
+        result.Data.Should().BeNull();
+        result.Message.Should().Contain("An error occurred while updating the charge station");
+        await repository.DidNotReceive().UpdateAsync(Arg.Any<ChargeStation>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -76,7 +77,8 @@ public class UpdateChargeStationCommandHandlerTests
     {
         // Arrange
         var repository = Substitute.For<IChargeStationRepository>();
-        var handler = new UpdateChargeStationCommandHandler(repository);
+        var logger = Substitute.For<ILogger<UpdateChargeStationCommandHandler>>();
+        var handler = new UpdateChargeStationCommandHandler(repository, logger);
         var chargeStationId = Guid.NewGuid();
 
         repository.GetByIdWithConnectorsAsync(chargeStationId, Arg.Any<CancellationToken>())

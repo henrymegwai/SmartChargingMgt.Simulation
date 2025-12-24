@@ -2,12 +2,12 @@ namespace SmartChargingManagement.Domain.Entities;
 
 public class Connector
 {
-    public int Id { get; private set; }
+    public int Id { get; init; }
     public int MaxCurrentInAmps { get; private set; }
     public Guid ChargeStationId { get; private set; }
     public ChargeStation ChargeStation { get; private set; } = null!;
 
-    private Connector() { } // For EF Core
+    private Connector() { } 
 
     public Connector(int id, int maxCurrentInAmps, Guid chargeStationId)
     {

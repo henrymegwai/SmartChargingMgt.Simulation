@@ -19,5 +19,3 @@ public class CreateGroupCommandHandler(IGroupRepository groupRepository)
         return new Response<GroupDto>(true, group.Map(), "Group created successfully");
     }
 }
-
-

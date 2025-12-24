@@ -12,7 +12,7 @@ builder.Services.AddControllers()
     {
         options.InvalidModelStateResponseFactory = context =>
         {
-            var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+            var problemDetails = new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Validation Error",
@@ -45,7 +45,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

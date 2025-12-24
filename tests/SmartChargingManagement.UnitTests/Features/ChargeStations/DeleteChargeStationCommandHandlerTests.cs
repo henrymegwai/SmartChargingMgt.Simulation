@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SmartChargingManagement.Application.Common.Interfaces;
 using SmartChargingManagement.Application.Common.Models;
@@ -16,7 +17,8 @@ public class DeleteChargeStationCommandHandlerTests
     {
         // Arrange
         var repository = Substitute.For<IChargeStationRepository>();
-        var handler = new DeleteChargeStationCommandHandler(repository);
+        var logger = Substitute.For<ILogger<DeleteChargeStationCommandHandler>>();
+        var handler = new DeleteChargeStationCommandHandler(repository, logger);
         var chargeStationId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
         var chargeStation = new ChargeStation(chargeStationId, "Test Charge Station", groupId);
@@ -45,7 +47,8 @@ public class DeleteChargeStationCommandHandlerTests
     {
         // Arrange
         var repository = Substitute.For<IChargeStationRepository>();
-        var handler = new DeleteChargeStationCommandHandler(repository);
+        var logger = Substitute.For<ILogger<DeleteChargeStationCommandHandler>>();
+        var handler = new DeleteChargeStationCommandHandler(repository, logger);
         var chargeStationId = Guid.NewGuid();
 
         repository.GetByIdAsync(chargeStationId, Arg.Any<CancellationToken>())

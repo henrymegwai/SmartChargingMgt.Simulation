@@ -27,7 +27,7 @@ public class ConnectorsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ConnectorDto>> Create([FromBody] CreateConnectorRequest request)
     {
-        var command = new CreateConnectorCommand(request.Id, request.MaxCurrentInAmps, request.ChargeStationId);
+        var command = new CreateConnectorCommand(request.MaxCurrentInAmps, request.ChargeStationId);
         var response = await mediator.Send(command);
         return Ok(response);
     }

@@ -1,54 +1,41 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SmartChargingManagement.Application.Common.Interfaces;
 using SmartChargingManagement.Infrastructure.Data;
 
 namespace SmartChargingManagement.Infrastructure.Repositories;
 
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T>(ApplicationDbContext context) : IRepository<T>
+    where T : class
 {
-    protected readonly ApplicationDbContext _context;
-    protected readonly DbSet<T> _dbSet;
-
-    public Repository(ApplicationDbContext context)
-    {
-        _context = context;
-        _dbSet = context.Set<T>();
-    }
+    protected readonly DbSet<T> DbSet = context.Set<T>();
 
     public virtual async Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(new[] { id }, cancellationToken);
+        return await DbSet.FindAsync([id], cancellationToken);
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet.ToListAsync(cancellationToken);
+        return await DbSet.ToListAsync(cancellationToken);
     }
 
     public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await _dbSet.AddAsync(entity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await DbSet.AddAsync(entity, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
     public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        DbSet.Update(entity);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
-        _dbSet.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public virtual async Task<bool> ExistsAsync(object id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetByIdAsync(id, cancellationToken);
-        return entity != null;
+        DbSet.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
 
