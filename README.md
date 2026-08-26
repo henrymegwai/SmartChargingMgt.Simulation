@@ -1,4 +1,4 @@
-# GreenFlux Smart Charging Assignment 
+# Smart Charging Management Simulation 
 
 ## Version 25
 
