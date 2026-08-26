@@ -1,9 +1,5 @@
 # Smart Charging Management Simulation 
 
-## Version 25
-
-## Assignment Completion
-
 ## Overview
 
 This is a RESTful HTTP API for managing a simplified smart charging domain. The solution implements a clean architecture with the following layers:
